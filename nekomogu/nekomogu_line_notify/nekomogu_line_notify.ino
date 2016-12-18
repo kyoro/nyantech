@@ -1,3 +1,6 @@
+#include <ESP8266WiFi.h>
+#include <WiFiClientSecure.h>
+
 //ねこが来たとみなす距離（センチ）
 #define NEARBY_DISTANCE 20
 //ねこが来たと判定する検出回数（多くすると安定するが、検知しにくくなる）
@@ -7,6 +10,64 @@
 #define LED_PIN   4
 #define TRIG_PIN  5
 #define ECHO_PIN  16
+
+
+//WiFi設定
+const char* ssid = "NyantechWifi";
+const char* password = "nekoneko";
+void wifiConnect() {
+  Serial.print("Connecting to " + String(ssid));
+
+  //WiFi接続開始
+  WiFi.begin(ssid, password);
+  
+  //接続状態になるまで待つ
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  //接続に成功。IPアドレスを表示
+  Serial.print("Connected! IP address: ");
+  Serial.println(WiFi.localIP());
+}
+
+
+//Line通知
+void sendLineNotify() {
+  const char* host = "notify-api.line.me";
+  const char* token = "YOUR_LINE_TOKEN";
+  const char* message = "%f0%9f%8d%9a"; //ごはんの絵文字をURLエンコードしたもの
+  WiFiClientSecure client;
+  Serial.println("Try");
+  //LineのAPIサーバに接続
+  if (!client.connect(host, 443)) {
+    Serial.println("Connection failed");
+    return;
+  }
+  Serial.println("Connected");
+  //リクエストを送信
+  String query = String("message=") + String(message);
+  String request = String("") +
+               "POST /api/notify HTTP/1.1\r\n" +
+               "Host: " + host + "\r\n" +
+               "Authorization: Bearer " + token + "\r\n" +
+               "Content-Length: " + String(query.length()) +  "\r\n" + 
+               "Content-Type: application/x-www-form-urlencoded\r\n\r\n" +
+                query + "\r\n";
+  client.print(request);
+ 
+  //受信終了まで待つ 
+  while (client.connected()) {
+    String line = client.readStringUntil('\n');
+    if (line == "\r") {
+      break;
+    }
+  }
+  
+  String line = client.readStringUntil('\n');
+  Serial.println(line);
+}
 
 
 //距離測定
@@ -59,6 +120,11 @@ void nearbyCheck() {
 
     //対象物を検知している間、LEDを点灯
     digitalWrite(LED_PIN, nearby ? HIGH : LOW);
+  
+    //もしごはんに来ていたらLine通知
+    if(nearby){
+      sendLineNotify();
+    }
   }
 }
 
@@ -69,6 +135,9 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
+
+  //WiFi接続
+  wifiConnect();
 }
 
 
