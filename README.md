@@ -1,3 +1,5 @@
+![LGTM](https://i.gyazo.com/a30f1c2e339e0361c3553aa443dabd0f.png)]
+
 # にゃんてっく - サンプルコード
 CodeIQで好評連載中の、猫と猫好きエンジニアに贈るIoT実践特集
 **「[にゃんてっく](https://codeiq.jp/magazine/category/nyantech/)」** で実際に開発したコードをサンプルとして公開するリポジトリです。
