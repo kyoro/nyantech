@@ -19,8 +19,8 @@ unsigned int measureDistance() {
   //パルスを受信するまでの時間を計測
   int duration = pulseIn(ECHO_PIN, HIGH);
 
-  //超音波は音速なので、反射して戻ってくるのにかかった時間を（ミリ秒）を58で割ると、センチメートルに変換できる
-  return duration / 58;
+    //超音波は音速なので、反射して戻ってくるのにかかった時間から距離を計測
+  return ((duration * 340 * 100) / 1000000) / 2;
 }
 
 
